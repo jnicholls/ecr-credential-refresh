@@ -3,7 +3,7 @@ kind: ServiceAccount
 metadata:
   name: {{ include "ecr-credentials-refresh.name" . }}
   labels:
-    {{ include "ecr-credentials-refresh.labels" . }}
+{{ include "ecr-credentials-refresh.labels" . | indent 4 }}
 
 ---
 
@@ -12,7 +12,7 @@ kind: Role
 metadata:
   name: {{ include "ecr-credentials-refresh.name" . }}
   labels:
-    {{ include "ecr-credentials-refresh.labels" . }}
+{{ include "ecr-credentials-refresh.labels" . | indent 4 }}
 rules:
 - apiGroups: [""]
   resources: ["secrets"]
@@ -25,7 +25,7 @@ kind: RoleBinding
 metadata:
   name: {{ include "ecr-credentials-refresh.name" . }}
   labels:
-    {{ include "ecr-credentials-refresh.labels" . }}
+{{ include "ecr-credentials-refresh.labels" . | indent 4 }}
 subjects:
 - kind: ServiceAccount
   name: {{ include "ecr-credentials-refresh.name" . }}

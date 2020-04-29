@@ -48,7 +48,7 @@ kind: CronJob
 metadata:
   name: {{ include "ecr-credentials-refresh.name" . }}
   labels:
-    {{ include "ecr-credentials-refresh.labels" . }}
+{{ include "ecr-credentials-refresh.labels" . | indent 4 }}
 spec:
   concurrencyPolicy: Forbid
   schedule: {{ .Values.refreshSchedule }}
@@ -64,5 +64,5 @@ kind: Job
 metadata:
   name: {{ include "ecr-credentials-refresh.name" . }}-init
   labels:
-    {{ include "ecr-credentials-refresh.labels" . }}
+{{ include "ecr-credentials-refresh.labels" . | indent 4 }}
 {{ include "ecr-credentials-refresh.jobSpec" . }}
