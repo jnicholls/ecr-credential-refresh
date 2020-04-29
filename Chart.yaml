@@ -1,0 +1,4 @@
+apiVersion: v1
+description: A CronJob that will regularly refresh a Secret with AWS ECR Docker credentials, which can be used with `imagePullSecrets`.
+name: ecr-credentials-refresh
+version: 0.1.0

@@ -1,0 +1,9 @@
+image:
+  repo: jarrednicholls/aws-cli-kubectl
+  tag: latest
+nameOverride:
+fullnameOverride:
+
+awsCredentialsSecret: ecr-aws-credentials
+dockerCredentialsSecret: ecr-docker-credentials
+refreshSchedule: "0 * * * *"

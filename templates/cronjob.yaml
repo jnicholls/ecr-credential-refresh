@@ -1,0 +1,68 @@
+{{- define "ecr-credentials-refresh.jobSpec" -}}
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "ecr-credentials-refresh.name" . }}
+      terminationGracePeriodSeconds: 0
+      ttlSecondsAfterFinished: 900
+      containers:
+      - name: ecr-credentials-refresh
+        image: {{ printf "%s:%s" .Values.image.repo .Values.image.tag }}
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.awsCredentialsSecret }}
+              key: accessKeyId
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.awsCredentialsSecret }}
+              key: secretAccessKey
+        - name: AWS_DEFAULT_REGION
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.awsCredentialsSecret }}
+              key: region
+        - name: DOCKER_CREDENTIALS_SECRET
+          value: {{ .Values.dockerCredentialsSecret }}
+        args:
+        - -c
+        - |
+          AWS_ACCOUNT=`aws sts get-caller-identity | jq -r '.Account'`
+          DOCKER_REGISTRY="https://${AWS_ACCOUNT}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          DOCKER_USER=AWS
+          DOCKER_PASSWORD=`aws ecr get-login | cut -d' ' -f6`
+
+          kubectl delete secret ${DOCKER_CREDENTIALS_SECRET} || true
+          kubectl create secret docker-registry ${DOCKER_CREDENTIALS_SECRET} \
+            --docker-server="${DOCKER_REGISTRY}" \
+            --docker-username="${DOCKER_USER}" \
+            --docker-password="${DOCKER_PASSWORD}" \
+            --docker-email="no@email.local"
+{{- end -}}
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ include "ecr-credentials-refresh.name" . }}
+  labels:
+    {{ include "ecr-credentials-refresh.labels" . }}
+spec:
+  concurrencyPolicy: Forbid
+  schedule: {{ .Values.refreshSchedule }}
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    {{- include "ecr-credentials-refresh.jobSpec" . | nindent 4 }}
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ecr-credentials-refresh.name" . }}-init
+  labels:
+    {{ include "ecr-credentials-refresh.labels" . }}
+{{ include "ecr-credentials-refresh.jobSpec" . }}
