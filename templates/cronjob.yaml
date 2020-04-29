@@ -1,11 +1,11 @@
 {{- define "ecr-credentials-refresh.jobSpec" -}}
 spec:
+  ttlSecondsAfterFinished: 900
   template:
     spec:
       restartPolicy: Never
       serviceAccountName: {{ include "ecr-credentials-refresh.name" . }}
       terminationGracePeriodSeconds: 0
-      ttlSecondsAfterFinished: 900
       containers:
       - name: ecr-credentials-refresh
         image: {{ printf "%s:%s" .Values.image.repo .Values.image.tag }}
